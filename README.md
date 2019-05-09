@@ -1,2 +1,2 @@
 # advance
-it advace plan
+It advace plan
