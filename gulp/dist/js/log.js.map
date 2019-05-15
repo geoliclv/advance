@@ -1,0 +1,1 @@
+{"version":3,"sources":["log.js"],"names":["a","document","getElementsByClassName","console","log"],"mappings":"AAAA,IAAIA,EAAIC,SAASC,uBAAuB,SACxCC,QAAQC,IAAIJ","file":"log.js","sourcesContent":["var a = document.getElementsByClassName('title');\nconsole.log(a);\n"]}

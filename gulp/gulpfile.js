@@ -1,88 +1,91 @@
 var gulp = require("gulp");
-var vinylPaths = require("vinyl-paths");
+var gutil = require("gulp-util");
 var uglify = require("gulp-uglify");
+var watchPath = require("gulp-watch-path");
 var combiner = require("stream-combiner2");
-var del = require("del");
-var browserSync = require("browser-sync");
-// var watch = require("gulp-watch");
-// var sass = require("gulp-ruby-sass");
-var reload = browserSync.reload;
+var sourcemaps = require("gulp-sourcemaps");
+var minifycss = require("gulp-minify-css");
+var autoprefixer = require("gulp-autoprefixer");
+var sass = require("gulp-ruby-sass");
 
-var vueify = require('gulp-vueify');
+var imagemin = require("gulp-imagemin");
 
-gulp.task("default", function() {
-  gulp.src("./hello/*.{html,js}").pipe(gulp.dest("./hello/copy/"));
-});
-// gulp.watch("./hellow/index.html", function(event) {
-//   console.log(event);
-// });
+var connect = require("gulp-connect");
 
-//通过使用 stream-combiner2，你可以将一系列的 stream 合并成一个，这意味着，你只需要在你的代码中一个地方添加监听器监听 error 时间就可以了。
-gulp.task("testCombiner2", function() {
-  var combined = combiner.obj([
-    gulp.src("./hello/index.js"),
-    uglify(),
-    gulp.dest("./hello/copy")
-  ]);
-  combined.on("error", console.error.bind(console));
-  return combined;
-});
-//node del直接删除
-gulp.task("delCopy", function() {
-  del(["./hello/copy/*"]);
-});
-//在管道中将一些处理过的文件删除掉
-gulp.task("delCopy2", function() {
-  gulp
-    .src("./hello/*.{html,js}")
-    .pipe(gulp.dest("./hello/copy/"))
-    .pipe(vinylPaths(del));
-});
+var handleError = function(err) {
+  var colors = gutil.colors;
+  console.log("\n");
+  gutil.log(colors.red("Error!"));
+  gutil.log("fileName: " + colors.red(err.fileName));
+  gutil.log("lineNumber: " + colors.red(err.lineNumber));
+  gutil.log("message: " + err.message);
+  gutil.log("plugin: " + colors.yellow(err.plugin));
+};
 
-//热更新
-gulp.task("hot", function() {
-  browserSync({
-    server: {
-      baseDir: "./html"
-    }
+gulp.task("watchjs", function() {
+  var watch = gulp.watch("src/js/**/*.js");
+  watch.on("change", function(event) {
+    const event1 = { type: "changed", path: event };
+    var paths = watchPath(event1, "src/", "dist/");
+    gutil.log(gutil.colors.green(event1.type) + " " + paths.srcPath);
+    gutil.log("Dist " + paths.distPath);
+
+    var combined = combiner.obj([gulp.src(paths.srcPath), sourcemaps.init(), uglify(), sourcemaps.write("./"), gulp.dest(paths.distDir),connect.reload()]);
+    combined.on("error", handleError);
   });
-  var w = gulp.watch('html/*');
-  w.on('change',function(){
-    console.log('sss');
-    reload();
-  })
-  // browserSync({
-  //   server: {
-  //     baseDir: "./hot"
-  //   }
-  // });
-  // watch(
-  //   ["./js/*.js", "./styles/*.scss", "./*.html"],
-  //   { cwd: "hot" },
-  //   function() {
-  //     sass("./hot/styles/*.scss").pipe(gulp.dest("./hot/styles"));
-  //     reload();
-  //   }
-  // );
 });
 
-gulp.task("delay", function(cb) {
-  del(["./dist"]);
-  setTimeout(function() {
-    cb();
-  }, 5000);
+gulp.task("watchcss", function() {
+  var watch = gulp.watch("src/css/**/*.css");
+  watch.on("change", function(event) {
+    const event1 = { type: "changed", path: event };
+    var paths = watchPath(event1, "src/", "dist/");
+    gutil.log(gutil.colors.green(event1.type) + " " + paths.srcPath);
+    gutil.log("Dist" + paths.distPath);
+    var combined = combiner.obj([gulp.src(paths.srcPath), sourcemaps.init(), autoprefixer({ browsers: "last 2 versions" }), minifycss(), sourcemaps.write("./"), gulp.dest(paths.distDir),connect.reload()]);
+    combined.on("error", handleError);
+  });
 });
-//不要再用gulp 3的方式指定依赖任务，你需要使用gulp.series和gulp.parallel，因为gulp任务现在只有两个参数。　
-gulp.task(
-  "pathtest",
-  gulp.series("delay", function() {
-    gulp.src("path/html/*.html").pipe(gulp.dest("dist"));
-    //options base 更适用于整个目录结构的复制
-    // gulp.src("path/html/*.html", { base: "path" }).pipe(gulp.dest("dist"));
-    //使用cwd来配置相对路径
-    // gulp.src("path/html/*.html").pipe(gulp.dest("./html", { cwd: "dist" }));
-  })
-);
-gulp.task('vuetest',function(){
-  gulp.src('./vue/index.vue').pipe(vueify()).pipe(gulp.dest('./dist/vue'));
-})
+
+gulp.task("watchsass", function() {
+  var watch = gulp.watch("src/sass/**/*.scss");
+  watch.on("change", function(event) {
+    const event1 = { type: "changed", path: event };
+    var paths = watchPath(event1, "src/sass/", "dist/css/");
+    gutil.log(gutil.colors.green(event1.type) + " " + paths.srcPath);
+    gutil.log("Dist" + paths.distPath);
+    sass(paths.srcPath)
+      .on("error", function(err) {
+        console.error(err.message);
+      })
+      .pipe(sourcemaps.init())
+      .pipe(minifycss())
+      .pipe(
+        autoprefixer({
+          browsers: "last 2 versions"
+        })
+      )
+      .pipe(sourcemaps.write("./"))
+      .pipe(gulp.dest(paths.distDir)).pipe(connect.reload());
+  });
+});
+
+gulp.task("watchimage", function() {
+  var watch = gulp.watch("src/images/**/*");
+  watch.on("all", function() {
+    gulp
+      .src("src/images/**/*")
+      .pipe(imagemin())
+      .pipe(gulp.dest("dist/images/"));
+  });
+});
+
+gulp.task("connect", function() {
+  connect.server({
+    root: "./",
+    port:1040,
+    livereload: true
+  });
+});
+
+gulp.task("default", gulp.parallel(['connect',"watchjs", "watchsass", "watchimage"]));
