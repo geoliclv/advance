@@ -1,1 +1,1 @@
-{"version":3,"sources":["index.css"],"names":[],"mappings":"AAAA,OACE,UAAO,CACP,cAAW","file":"index.css","sourcesContent":[".title{color:#00f;font-size:40px}"]}
+{"version":3,"sources":["index.css"],"names":[],"mappings":"AAAA,OACE,SAAO,CACP,cAAW","file":"index.css","sourcesContent":[".title{color:red;font-size:40px}"]}
