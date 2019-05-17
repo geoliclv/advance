@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.js"],"names":["a","document","getElementsByClassName","console","log"],"mappings":"AAAA,IAAIA,EAAIC,SAASC,uBAAuB,SACxCC,QAAQC,IAAIJ","file":"index.js","sourcesContent":["var a = document.getElementsByClassName('title');\nconsole.log(a);"]}
