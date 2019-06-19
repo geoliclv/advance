@@ -21,7 +21,6 @@ function defaultTask(cb) {
     //some code
   cb();
 }
-
 exports.default = defaultTask
 ```
 这样在命令行输入gulp就会默认执行`default`任务
@@ -37,7 +36,6 @@ gulp是根据一个一个task来执行任务的，由于使用的是`gulp4`，�
 ```js
 //before
 const gulp = reqiure('gulp');
-
 gulp.task('task1',function(){
     //some code
 })
@@ -61,27 +59,20 @@ exports.task1 = task1
 
 ```js
 const {series,parallel} = require('gulp');
-
 function task1(cb){
     //some code
     cb();
 }
-
 function task2(cb){
     //some code
     cb();
 }
-
 //series是串行
 exports.default = series(task1,task2);
-
 //parallel是并行
 exports.default = parallel(task1,task2);
-
 //也可以进行嵌套 
-
 exports.default = series(task1,parallel(task1,task2))
-
 exports.default = parallel(task1,series(task1,task2))
 ```
 
@@ -96,45 +87,36 @@ exports.default = parallel(task1,series(task1,task2))
 1. Returning a stream(返回文件流)
     ```js
     const { src, dest } = require('gulp');
-
     function streamTask() {
     return src('*.js')
         .pipe(dest('output'));
     }
-
     exports.default = streamTask;
-
     ```
 1. Returning a promise(返回一个Promise)
     ```js
     function promiseTask() {
     return Promise.resolve('the value is ignored');
     }
-
     exports.default = promiseTask;
-
     ```
 1. Returning an event emitter(返回一个事件触发器)
     ```js
     const { EventEmitter } = require('events');
-
     function eventEmitterTask() {
     const emitter = new EventEmitter();
     // Emit has to happen async otherwise gulp isn't listening yet
     setTimeout(() => emitter.emit('finish'), 250);
     return emitter;
     }
-
     exports.default = eventEmitterTask;
     ```
 1. Returning a child process(返回子进程)
     ```js
     const { Observable } = require('rxjs');
-
     function observableTask() {
     return Observable.of(1, 2, 3);
     }
-
     exports.default = observableTask;
     ```
 1. Using an error-first callback(使用回调函数)
@@ -143,27 +125,22 @@ exports.default = parallel(task1,series(task1,task2))
     // `cb()` should be called by some async work
     cb();
     }
-
     exports.default = callbackTask;
-    
     //顾名思义，也可以返回一个Error实例
     function callbackError(cb) {
     // `cb()` should be called by some async work
     cb(new Error('kaboom'));
     }
-
     exports.default = callbackError;
     ```
 1. Using async/await(使用同步函数)
     ```js
     const fs = require('fs');
-
     async function asyncAwaitTask() {
     const { version } = fs.readFileSync('package.json');
     console.log(version);
     await Promise.resolve('some result');
     }
-
     exports.default = asyncAwaitTask;
     ```
 
@@ -176,7 +153,6 @@ gulp操作文件是通过它提供的`src`和`dest`方法来实现的。`src`负
 ```js
 const { src, dest } = require('gulp');
 const babel = require('gulp-babel');
-
 exports.default = function() {
   return src('src/*.js')
     .pipe(babel())
@@ -193,7 +169,6 @@ exports.default = function() {
 1. 使用回调函数
     ```js
     const { watch } = require('gulp');
-
     watch(['input/*.js', '!input/something.js'], function(cb) {
     // body omitted
     cb();
@@ -202,11 +177,9 @@ exports.default = function() {
 1. 使用事件绑定
     ```js
     const { watch } = require('gulp');
-
     const watcher = watch("src/sass/**/*.scss");
     watcher.on("all", function(stats, path) {
         //stats为触发的事件，path是被改变的文件路径
-
         //some code
     })
     ```
